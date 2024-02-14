@@ -7,48 +7,31 @@ CREATE OR REPLACE FUNCTION calculate_total_compensation(
         v_monthly_salary NUMBER;
         v_annual_bonus_percentage NUMBER;
 BEGIN  
-        BEGIN
-            IF ISNUMERIC(p_monthly_salary) THEN
-                v_monthly_salary := TO_NUMBER(p_monthly_salary);
-            ELSE 
-                RAISE_APPLICATION_ERROR(-20003,'Не число');
-            END IF;
-        EXCEPTION
-            WHEN OTHERS THEN
-                DBMS_OUTPUT.PUT_LINE('Ошибка: ' || SQLERRM);
-        END;
 
-        BEGIN
-            IF ISNUMERIC(p_annual_bonus_percentage) THEN
-                v_annual_bonus_percentage := TO_NUMBER(p_annual_bonus_percentage);
-            ELSE 
-                RAISE_APPLICATION_ERROR(-20003,'Не число');
-            END IF;
-        EXCEPTION
-            WHEN OTHERS THEN
-                DBMS_OUTPUT.PUT_LINE('Ошибка: ' || SQLERRM);
-        END;
+        v_monthly_salary := TO_NUMBER(p_monthly_salary);
+        v_annual_bonus_percentage := FLOOR(TO_NUMBER(p_annual_bonus_percentage));
 
-
-        IF p_monthly_salary<0 THEN
-            RAISE_APPLICATION_ERROR(-20001,'Месячная зарплата должна быть больше 0');
+        IF v_monthly_salary<0 THEN
+            RAISE_APPLICATION_ERROR(-20001,'Month salart need be > 0');
         END IF;
 
-        IF p_annual_bonus_percentage < 0 or p_annual_bonus_percentage >100 THEN
-            RAISE_APPLICATION_ERROR(-20002,'Процент должен быть больше от 0 до 100');
+        IF v_annual_bonus_percentage < 0 or v_annual_bonus_percentage >100 THEN
+            RAISE_APPLICATION_ERROR(-20002,'Percent need be [0,100]');
         END IF;
 
 
-        v_annual_bonus_ratio := p_annual_bonus_percentage / 100;
-        v_total_compensation := (1 + v_annual_bonus_ratio) * 12 * p_monthly_salary;
+        v_annual_bonus_ratio := v_annual_bonus_percentage / 100;
+        v_total_compensation := (1 + v_annual_bonus_ratio) * 12 * v_monthly_salary;
         RETURN v_total_compensation;
 EXCEPTION
-        WHEN VALUE_ERROR THEN
-            DBMS_OUTPUT.PUT_LINE('Ошибка: ' || SQLERRM);
+        WHEN OTHERS THEN
+            RAISE_APPLICATION_ERROR(-20005,'Something wrong');
+            DBMS_OUTPUT.PUT_LINE('Status: ' || SQLERRM);
 END calculate_total_compensation;
-	BEGIN
-    		dbms_output.put_line(calculate_total_compensation(100,50));
-	EXCEPTION
-    		WHEN VALUE_ERROR THEN
-        		dbms_output.put_line(2/100);
-	END;
+
+BEGIN
+        dbms_output.put_line(calculate_total_compensation(1,100));
+EXCEPTION
+        WHEN VALUE_ERROR THEN
+            dbms_output.put_line(2/100);
+END;
