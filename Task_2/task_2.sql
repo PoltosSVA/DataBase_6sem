@@ -1,0 +1,69 @@
+CREATE SEQUENCE students_id_seq START WITH 1 INCREMENT BY 1;
+
+CREATE OR REPLACE TRIGGER auto_increment_id_students
+    BEFORE INSERT ON STUDENTS
+    FOR EACH ROW
+    DECLARE
+        max_id NUMBER;
+    BEGIN
+        SELECT MAX(ID) INTO max_id FROM STUDENTS;
+        IF :NEW.ID IS NULL THEN
+            :NEW.ID := students_id_seq.NEXTVAL;
+        END IF;
+    END;
+    
+CREATE SEQUENCE groups_id_seq START WITH 1 INCREMENT BY 1;
+
+CREATE OR REPLACE TRIGGER auto_increment_id_groups
+    BEFORE INSERT ON GROUPS
+    FOR EACH ROW
+    DECLARE
+        max_id NUMBER;
+    BEGIN
+        SELECT MAX(ID) INTO max_id FROM GROUPS;
+        IF :NEW.ID IS NULL THEN
+            :NEW.ID := groups_id_seq.NEXTVAL;
+        END IF;
+    END;
+
+CREATE OR REPLACE TRIGGER groups_id_unique
+BEFORE INSERT OR UPDATE ON GROUPS
+FOR EACH ROW
+DECLARE
+    v_count NUMBER;
+BEGIN
+    SELECT COUNT(*) INTO v_count FROM GROUPS
+    WHERE ID = :NEW.ID;
+    IF v_count > 0 THEN
+        RAISE_APPLICATION_ERROR(-20001,'Id must be unique');
+    END IF;
+END;
+
+CREATE OR REPLACE TRIGGER students_id_unique
+BEFORE INSERT OR UPDATE ON STUDENTS
+FOR EACH ROW
+DECLARE
+    v_count NUMBER;
+BEGIN
+    SELECT COUNT(*) INTO v_count FROM STUDENTS
+    WHERE ID = :NEW.ID;
+    IF v_count > 0 THEN
+        RAISE_APPLICATION_ERROR(-20001,'Id must be unique');
+    END IF;
+END;
+
+CREATE OR REPLACE TRIGGER groups_name_unique
+BEFORE INSERT OR UPDATE ON GROUPS
+FOR EACH ROW
+DECLARE
+    v_count NUMBER;
+BEGIN
+    SELECT COUNT(*) INTO v_count FROM GROUPS
+    WHERE NAME = :NEW.NAME;
+    IF v_count > 0 THEN
+        RAISE_APPLICATION_ERROR(-20001,'Name must be unique');
+    END IF;
+END;
+
+ALTER SEQUENCE groups_id_seq RESTART
+ALTER SEQUENCE students_id_seq RESTART
