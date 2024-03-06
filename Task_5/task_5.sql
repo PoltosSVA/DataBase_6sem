@@ -1,0 +1,12 @@
+CREATE OR REPLACE PROCEDURE restore_data(p_hours NUMBER )AS
+v_target_timestamp TIMESTAMP;
+BEGIN
+    v_target_timestamp := SYSTIMESTAMP - NUMTODSINTERVAL(p_hours, 'HOUR');
+    DELETE FROM STUDENTS;
+    
+    INSERT INTO STUDENTS(ID,NAME,GROUP_ID)
+    SELECT ID, NEW_NAME, NEW_GROUP_ID
+    FROM LOGS_STUDENTS
+    WHERE ACTION_DATE <= v_target_timestamp;
+    
+END;
